@@ -163,12 +163,12 @@ int main() {
     init_adc_dma();
     for(;;) {
         //printf("in main\n");
-        float v = (adc_fifo_out * 3.3) / (1u << 12);
-        float uvi = v / 0.026f; // using 1M resistor
+        float v = (adc_fifo_out * 0.42) / (1u << 12);
+        float uvi = v / 0.1; // using 1M resistor
         //printf("uvi: %4.7f\n", uvi);
         printf("ADC=%d  V=%.3f  UVI=%.2f\n", adc_fifo_out, v, uvi);
 
-        sleep_ms(500);
+        sleep_ms(100);
     }
 
     /*init_adc();
