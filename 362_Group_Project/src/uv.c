@@ -32,6 +32,7 @@
 extern char font[]; // Font mapping for 7-segment display
 static int index = 0; // Current index in the message buffer*/
 uint32_t adc_fifo_out = 0;
+volatile uint16_t adc_result;
 
 void init_adc() {
     // fill in
@@ -42,10 +43,10 @@ void init_adc() {
     
 }
 
-/*uint16_t read_adc() {
+uint16_t read_adc() {
     // fill in
-    adc_read();
-}*/
+    return adc_read();
+}
 
 void init_adc_freerun() {
     // fill in
@@ -73,6 +74,39 @@ void init_adc_dma() {
 
     hw_write_masked(&adc_hw->fcs, (1u << ADC_FCS_EN_LSB) | (1u << ADC_FCS_DREQ_EN_LSB), ADC_FCS_EN_BITS | ADC_FCS_DREQ_EN_BITS);
 }
+
+/*void init_adc_dma() {
+    adc_init();
+    adc_gpio_init(26);        // GPIO26 = ADC0
+    adc_select_input(0);
+
+    // Setup FIFO
+    adc_fifo_setup(
+        true,    // enable FIFO
+        true,    // enable DMA DREQ
+        1,       // DREQ when 1 sample available
+        false,   // no error bit
+        false    // no 8-bit shift
+    );
+
+    int dma_chan = dma_claim_unused_channel(true);
+    dma_channel_config c = dma_channel_get_default_config(dma_chan);
+    channel_config_set_transfer_data_size(&c, DMA_SIZE_16);
+    channel_config_set_read_increment(&c, false);
+    channel_config_set_write_increment(&c, false);
+    channel_config_set_dreq(&c, DREQ_ADC);
+
+    dma_channel_configure(
+        dma_chan,
+        &c,
+        &adc_result,     // dest
+        &adc_hw->fifo,   // src
+        1,               // transfer count
+        true             // start immediately
+    );
+
+    adc_run(true);
+}*/
 
 /*void display_char_print(const char message[]) {
     for (int i = 0; i < 8; i++) {
@@ -128,12 +162,25 @@ int main() {
 
     init_adc_dma();
     for(;;) {
+        //printf("in main\n");
         float v = (adc_fifo_out * 3.3) / (1u << 12);
-        float uvi = v / 0.026; // using 1M resistor
-        printf("uvi: %4.7f\n", uvi);
+        float uvi = v / 0.026f; // using 1M resistor
+        //printf("uvi: %4.7f\n", uvi);
+        printf("ADC=%d  V=%.3f  UVI=%.2f\n", adc_fifo_out, v, uvi);
 
-        sleep_ms(250);
+        sleep_ms(500);
     }
+
+    /*init_adc();
+    for(;;) {
+        printf("ADC Result: %d     \r", read_adc());
+        // We've found that when we do NOT send a newline character,
+        // the output is not flushed immediately, which can cause
+        // the output to be delayed or not appear at all in some cases.
+        // The fflush function forces a flush.
+        fflush(stdout);
+        sleep_ms(250);
+    }*/
 
     for(;;);
     return 0;
