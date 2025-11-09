@@ -19,7 +19,7 @@
 
 // 7-segment display message buffer
 // Declared as static to limit scope to this file only.
-static char msg[8] = {
+/*static char msg[8] = {
     0x3F, // seven-segment value of 0
     0x06, // seven-segment value of 1
     0x5B, // seven-segment value of 2
@@ -30,7 +30,8 @@ static char msg[8] = {
     0x07, // seven-segment value of 7
 };
 extern char font[]; // Font mapping for 7-segment display
-static int index = 0; // Current index in the message buffer
+static int index = 0; // Current index in the message buffer*/
+uint32_t adc_fifo_out = 0;
 
 void init_adc() {
     // fill in
@@ -41,10 +42,10 @@ void init_adc() {
     
 }
 
-uint16_t read_adc() {
+/*uint16_t read_adc() {
     // fill in
     adc_read();
-}
+}*/
 
 void init_adc_freerun() {
     // fill in
@@ -73,7 +74,7 @@ void init_adc_dma() {
     hw_write_masked(&adc_hw->fcs, (1u << ADC_FCS_EN_LSB) | (1u << ADC_FCS_DREQ_EN_LSB), ADC_FCS_EN_BITS | ADC_FCS_DREQ_EN_BITS);
 }
 
-void display_char_print(const char message[]) {
+/*void display_char_print(const char message[]) {
     for (int i = 0; i < 8; i++) {
         msg[i] = font[message[i] & 0xFF];
     }
@@ -117,4 +118,23 @@ void display_init_timer() {
 
     uint32_t target0 = timer1_hw->timerawl + 3000;
     timer1_hw->alarm[0] = target0;
+}*/
+
+int main() {
+    stdio_init_all();
+
+    //display_init_pins();
+    //display_init_timer();
+
+    init_adc_dma();
+    for(;;) {
+        float v = (adc_fifo_out * 3.3) / (1u << 12);
+        float uvi = v / 0.026; // using 1M resistor
+        printf("uvi: %4.7f\n", uvi);
+
+        sleep_ms(250);
+    }
+
+    for(;;);
+    return 0;
 }
