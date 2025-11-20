@@ -37,7 +37,7 @@ void init_uart_irq() {
 void uart_rx_handler() {
     // fill in.
         // fill in.
-    uart0_hw->icr |= 1; //double check which one to clear
+    uart0_hw->icr |= 1; //double check which one to clear should be 0x10
     if (seridx == BUFSIZE){
         return;
     }
@@ -69,12 +69,15 @@ int _read(__unused int handle, char *buffer, int length) {
     newline_seen = 0;
     if (length > seridx){
         strncpy(buffer, serbuf, seridx);
+        int temp = seridx;
+        seridx = 0;
+        return(temp);
     }
     else{
         strncpy(buffer, serbuf, length);
+        seridx = 0;
+        return(length);
     }
-    seridx = 0;
-    return(length); 
 }
 
 int _write(__unused int handle, char *buffer, int length) {
