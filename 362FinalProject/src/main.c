@@ -14,6 +14,7 @@
 const char keymap[16] = "DCBA#9630852*741";
 char key = '\0';
 int col = 0;
+uint32_t adc_fifo_out = 0; //direct output of adc from uv sensor
 char uv = 0; //I feel it'll be easier since this is set to be one byte
 int temperature = 50;
 int humidity = 100; 
@@ -116,6 +117,49 @@ void init_sdcard_io(){
 
 //--------------------------------------END SD CARD----------------------------------------
 
+//--------------------------------------Begin UV-------------------------------------------
+void init_adc() {
+    // fill in
+    adc_init();
+
+    adc_gpio_init(45); // selects gpio pin used as adc
+    adc_select_input(5); // selects channel 5 as adc input
+    
+}
+
+uint16_t read_adc() {
+    // fill in
+    return adc_read();
+}
+
+void init_adc_freerun() {
+    // fill in
+    init_adc();
+
+    adc_run(true);
+}
+
+void init_dma() {
+    // fill in
+    dma_hw->ch[0].read_addr = &adc_hw->fifo;
+    dma_hw->ch[0].write_addr = &adc_fifo_out;
+
+    dma_hw->ch[0].transfer_count = (1u << 28) | (1u);
+
+    uint32_t temp = (1u << 2) | (48u << 17) | (1u << 0);
+
+    dma_hw->ch[0].ctrl_trig = temp;
+}
+
+void init_adc_dma() {
+    // fill in
+    init_dma();
+    init_adc_freerun();
+
+    hw_write_masked(&adc_hw->fcs, (1u << ADC_FCS_EN_LSB) | (1u << ADC_FCS_DREQ_EN_LSB), ADC_FCS_EN_BITS | ADC_FCS_DREQ_EN_BITS);
+}
+//--------------------------------------End UV---------------------------------------------
+
 // For now, I'm going to leave out the following part. Just going to print output on the screen, not show it on the LCD
 
 
@@ -200,14 +244,18 @@ void timer_isr(){
     //CHECK ON THIS! The timer isr has priority over the keypad isr, so I think we should send this frequency to be something REALLY LOW (like 0.2 Hz - fires every 5 seconds) to make sure the interrupts don't clash. Or does this not matter (i.e. since main isn't running while the timer isr is running, does the old keypad press get saved?)
     //we can save each data point to a global variable called "humidity", "temp", and "uv" - currently ints but should be changed to strings. 
     //For now, for testing purposes, I'm going to increment the value on each timer hit to simulate a new value being read in
-    if (uv < 100){
+    /*if (uv < 100){ FOR UNINTEGRATED TESTING ONLY
         uv += 3;
     }
     else{
         uv = 0;
     }
     humidity += 3;
-    temperature -= 3;
+    temperature -= 3;*/
+
+    float v = (adc_fifo_out * 0.42) / (1u << 12);
+    float uvi = v / 0.1; // using 1M resistor
+    uv = (char)((int) uvi);
 
     //The SECOND part is what we need to send that data to the SD Card
     hw_clear_bits(&timer1_hw->intr, 1u << 0);
@@ -246,6 +294,7 @@ int main(){
     init_chardisp_pins();
     init_timer_irq();
     init_sdcard_io();
+    init_adc_dma();
     mount();
     sleep_ms(100);
     // sprintf(filename, "%d", 1099);
