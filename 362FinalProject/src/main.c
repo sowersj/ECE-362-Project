@@ -295,8 +295,7 @@ void timer_isr(){
     uint64_t target = timer1_hw->timerawl + 1000000; //TODO: Check on what time this represents.
     timer1_hw->alarm[0] = (uint32_t) target;
 
-    //The THIRD part of this function is sending data to LCD: at the moment, this is commented out so we only see the value on the LCD when a button is pressed 
-    //cd_display2(&humidity); //The number of bits sent here is wrong, so we'll have to modify that.
+    cd_display1(timestamp, uv, temperature, humidity);
 }
 
 void init_timer_irq(){
@@ -331,7 +330,6 @@ int main(){
     //cd_init();
     //cd_display1("Humidity today is:  ");
     for (;;) {
-        cd_display1(uv, temperature, humidity);
         drive_column();
     }
 }

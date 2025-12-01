@@ -29,13 +29,13 @@ void cd_init() {
     sleep_us(40);
 }
 
-void cd_display1(const char uv_str, const int temp, const int hum) {
+void cd_display1(const int time, const char uv_str, const int temp, const int hum) {
     int uv = uv_str - '0';
     if (uv > 9) uv = 9;
     if (uv < 0) uv = 0;
 
     char line[17];
-    snprintf(line, sizeof(line), "UV:%1d Tf:%3d H:%2d\0", uv, temp, hum);
+    snprintf(line, sizeof(line), "%2d U:%1d T:%2d H:%2d\0", time, uv, temp, hum);
 
     send_spi_cmd(spi0, 0b10000000);
 
@@ -51,7 +51,7 @@ void cd_display2(const char *filename_str, const char *uv_str, const char *temp_
     int filename = atoi(filename_str);
 
     char line[17];
-    snprintf(line, sizeof(line), "%2d %1d    %3d   %2d\0", filename, uv, temp, hum);
+    snprintf(line, sizeof(line), "%2d   %1d  %3d   %2d\0", filename, uv, temp, hum);
 
     send_spi_cmd(spi0, 0b11000000);
     for (int i = 0; i < 16; i++) {
