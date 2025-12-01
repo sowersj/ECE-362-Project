@@ -11,6 +11,7 @@
 #include "ff.h"
 #include "diskio.h"
 #include "sdcard.h"
+#include "chardisp.h"
 
 const char keymap[16] = "DCBA#9630852*741";
 char key = '\0';
@@ -214,49 +215,6 @@ void stop_measurement() {
 
 //--------------------------------------End Temp---------------------------------------------
 
-// For now, I'm going to leave out the following part. Just going to print output on the screen, not show it on the LCD
-
-
-/*
-void send_spi_cmd(spi_inst_t* spi, uint16_t value) {
-    while (spi_is_busy(spi)){
-    }
-    spi_write16_blocking(spi, &value, 1);
-}
-
-void send_spi_data(spi_inst_t* spi, uint16_t value) {
-    send_spi_cmd(spi, (value | 0x100));
-}
-
-void cd_init() {
-    sleep_ms(1);
-    send_spi_cmd(spi0, 0b0000111100);
-    sleep_us(40);
-    send_spi_cmd(spi0, 0b0000001100);
-    sleep_us(40);
-    send_spi_cmd(spi0, 0b0000000001);
-    sleep_ms(2);
-    send_spi_cmd(spi0, 0b0000000110);
-    sleep_us(40);
-}
-
-void cd_display1(const char *str) {
-    send_spi_cmd(spi0, 0x80);
-    while(*str != '\0'){
-        send_spi_data(spi0, *str);
-        str++;
-    }
-}
-
-void cd_display2(const char *str) {
-    send_spi_cmd(spi0, 0xC0);
-    while(*str != '\0'){
-        send_spi_data(spi0, *str);
-        str++;
-    }
-}
-*/
-
 void keypad_isr() {
     int row = 0;
     int afinalval = 0;
@@ -279,6 +237,7 @@ void keypad_isr() {
             sprintf(filename, "%d", temp1);
             cat(filename, a, b, c);
             printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, keynum, atoi(a), atoi(b), atoi(c));
+            cd_display2(filename, a, b, c);
         }
     }
 }
@@ -350,14 +309,12 @@ void init_timer_irq(){
 
 int main(){
     stdio_init_all();
-
-    //start temp/humidity measurements
+    init_chardisp_pins();
+    cd_init();
     init_i2c();
     start_measurement();
-
     init_keypad();
     init_keypad_irq();
-    init_chardisp_pins();
     init_timer_irq();
     init_sdcard_io();
     init_adc_dma();
@@ -374,7 +331,7 @@ int main(){
     //cd_init();
     //cd_display1("Humidity today is:  ");
     for (;;) {
+        cd_display1(uv, temperature, humidity);
         drive_column();
     }
 }
-
