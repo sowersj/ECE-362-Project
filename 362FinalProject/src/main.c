@@ -7,6 +7,7 @@
 #include "hardware/spi.h"
 #include "hardware/dma.h"
 #include "hardware/adc.h"
+#include "hardware/i2c.h"
 #include "ff.h"
 #include "diskio.h"
 #include "sdcard.h"
@@ -24,6 +25,9 @@ char filename[512];
 int timestamp = 0; //set to 0 at the beginning of each reset
 int delete_later = 0;
 int keynum = 0;
+
+//temp data
+uint8_t data[4];
 
 char a[100];
 char b[100];
@@ -208,29 +212,6 @@ void stop_measurement() {
     i2c_write_blocking(I2C_inst, SHT30_ADDR, control, 2, false);
 }
 
-int temp_main() {
-    stdio_init_all();
-    init_i2c();
-    start_measurement();
-
-    uint8_t data[4];
-
-    uint16_t temp_b;
-    uint16_t humid_b;
-
-    while(1) {
-        fetch_data(data);
-
-        temp_b = (data[0] << 8) | data[1];
-        humid_b = (data[2] << 8) | data[3];
-
-        float temp = 315.0 * ((float) temp_b) / (pow(2, 16) - 1) - 49;
-        float humid = 100.0 * ((float) humid_b) / (pow(2, 16) - 1);
-
-        printf("temp: %.1f°F, hum: %.1f%%\n", temp, humid);
-        sleep_ms(2000);
-    }
-}
 //--------------------------------------End Temp---------------------------------------------
 
 // For now, I'm going to leave out the following part. Just going to print output on the screen, not show it on the LCD
@@ -330,6 +311,13 @@ void timer_isr(){
     float uvi = v / 0.1; // using 1M resistor
     uv = (char)((int) uvi);
 
+    //collect temp info
+    fetch_data(data);
+    uint16_t temp_b = (data[0] << 8) | data[1];
+    uint16_t humid_b = (data[2] << 8) | data[3];
+    temperature = 315.0 * ((float) temp_b) / (pow(2, 16) - 1) - 49;
+    humidity = 100.0 * ((float) humid_b) / (pow(2, 16) - 1);
+
     //The SECOND part is what we need to send that data to the SD Card
     hw_clear_bits(&timer1_hw->intr, 1u << 0);
     //printf("%d\n", uv); //TODO: There's an issue right now - for some reason it's starting at 8. But, it does increment as expected, every second
@@ -362,6 +350,11 @@ void init_timer_irq(){
 
 int main(){
     stdio_init_all();
+
+    //start temp/humidity measurements
+    init_i2c();
+    start_measurement();
+
     init_keypad();
     init_keypad_irq();
     init_chardisp_pins();
