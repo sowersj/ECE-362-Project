@@ -26,6 +26,8 @@ char filename[512];
 int timestamp = 0; //set to 0 at the beginning of each reset
 int delete_later = 0;
 int keynum = 0;
+int keycount = 0; //max of 4 keypad digits inputted
+int digits_entered[4]; //recording of digits entered
 
 //temp data
 uint8_t data[4];
@@ -234,10 +236,24 @@ void keypad_isr() {
                 temp1 = 1;
             }
 
-            sprintf(filename, "%d", temp1);
-            cat(filename, a, b, c);
-            printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, keynum, atoi(a), atoi(b), atoi(c));
-            cd_display2(filename, a, b, c);
+            if(key == '#' || (key < 58 && key > 47 && keycount == 3)) { //display saved data
+                if(key != '#') {
+                    digits_entered[3] = keynum;
+                }
+
+                int seconds_back = digits_entered[0] + digits_entered[1] * 10 + digits_entered[2] * 100 + digits_entered[3] * 1000; //number of seconds back to display
+
+                sprintf(filename, "%d", temp1);
+                cat(filename, a, b, c);
+                printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, seconds_back, atoi(a), atoi(b), atoi(c));
+                cd_display2(filename, a, b, c);
+
+                keycount = 0;
+            }
+            else if(key < 58 && key > 47){ //isdigit
+                digits_entered[keycount] = keynum;
+                keycount++;
+            }
         }
     }
 }
