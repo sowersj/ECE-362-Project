@@ -240,7 +240,7 @@ void keypad_isr() {
                 int seconds_back = digits_entered[3] + digits_entered[2] * 10 + digits_entered[1] * 100 + digits_entered[0] * 1000; //number of seconds back to display
                 int temp1 = (round((timestamp - seconds_back) / 5)) * 5;
                 if (temp1 < 0){
-                    temp1 = 1;
+                    temp1 = 0;
                 }
 
                 sprintf(filename, "%d", temp1);
