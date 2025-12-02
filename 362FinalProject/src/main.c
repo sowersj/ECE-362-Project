@@ -287,7 +287,7 @@ void timer_isr(){
 
     float v = (adc_fifo_out * 0.42) / (1u << 12);
     float uvi = v / 0.1; // using 1M resistor
-    uv = (char)((int) uvi);
+    uv = ((int) uvi);
 
     //collect temp info
     fetch_data(data);
