@@ -301,7 +301,11 @@ void timer_isr(){
     //printf("%d\n", uv); //TODO: There's an issue right now - for some reason it's starting at 8. But, it does increment as expected, every second
 
     sprintf(weather_block, "%d\n%d\n%d\n%d\n", uv, humidity, temperature);
+    printf("==============================================================");
+    printf("filename: %s timestamp: %d\n", filename, timestamp);
     sprintf(filename, "%d", timestamp);
+    printf("filename: %s timestamp: %d\n", filename, timestamp);
+    printf("==============================================================");
 
     //Check if file with name of timestamp has already been created. If it has, remove it
     if (input(filename, weather_block)){
