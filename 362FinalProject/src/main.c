@@ -23,7 +23,7 @@ int humidity = 100;
 char weather_block[512];
 char filename[512];
 //char hist_display[512];
-int timestamp = 0; //set to 0 at the beginning of each reset
+int timestamp = -5; //set to 0 at the beginning of each reset
 int delete_later = 0;
 int keynum = 0;
 int keycount = 0; //max of 4 keypad digits inputted
@@ -238,14 +238,14 @@ void keypad_isr() {
                 }
 
                 int seconds_back = digits_entered[3] + digits_entered[2] * 10 + digits_entered[1] * 100 + digits_entered[0] * 1000; //number of seconds back to display
-                int temp1 = timestamp - seconds_back;
+                int temp1 = (round((timestamp - seconds_back) / 5)) * 5;
                 if (temp1 < 0){
                     temp1 = 1;
                 }
 
                 sprintf(filename, "%d", temp1);
                 cat(filename, a, b, c);
-                printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, seconds_back, atoi(a), atoi(b), atoi(c));
+                printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, timestamp - temp1, atoi(a), atoi(b), atoi(c));
                 cd_display2(filename, a, c, b);
 
                 for(int j = 0; j < 4; j++) {
@@ -318,9 +318,9 @@ void timer_isr(){
         input(filename, weather_block);
     }
 
-    timestamp++;
+    timestamp+=5;
 
-    uint64_t target = timer1_hw->timerawl + 1000000; //TODO: Check on what time this represents.
+    uint64_t target = timer1_hw->timerawl + 3000000; //TODO: Check on what time this represents.
     timer1_hw->alarm[0] = (uint32_t) target;
 
     cd_display1(timestamp, uv, temperature, humidity);
