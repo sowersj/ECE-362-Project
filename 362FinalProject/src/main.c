@@ -26,7 +26,7 @@ char filename[512];
 int timestamp = 0; //set to 0 at the beginning of each reset
 int delete_later = 0;
 int keynum = 0;
-int keycount = 0; //max of 4 keypad digits inputted
+int keycount = 3; //max of 4 keypad digits inputted
 int digits_entered[4]; //recording of digits entered
 
 //temp data
@@ -227,38 +227,41 @@ void keypad_isr() {
             gpio_acknowledge_irq(i, GPIO_IRQ_EDGE_RISE);
             row = i - 2;
             key = keymap[(col*4) + row];
-            //printf("Pressed: %c\n", key);
+            printf("Pressed: %c\n", key);
 
             //logic: we will read from the file who's name is timestamp - key
             keynum = key - '0';
-            int temp1 = timestamp - keynum;
-            if (temp1 < 0){
-                temp1 = 1;
-            }
 
-            if(key == '#' || (key < 58 && key > 47 && keycount == 3)) { //display saved data
+            if(key == '#' || (key < 58 && key > 47 && keycount == 0)) { //display saved data
                 if(key != '#') {
-                    digits_entered[3] = keynum;
+                    digits_entered[0] = keynum;
                 }
 
-                int seconds_back = digits_entered[0] + digits_entered[1] * 10 + digits_entered[2] * 100 + digits_entered[3] * 1000; //number of seconds back to display
+                int seconds_back = digits_entered[3] + digits_entered[2] * 10 + digits_entered[1] * 100 + digits_entered[0] * 1000; //number of seconds back to display
+                int temp1 = timestamp - seconds_back;
+                if (temp1 < 0){
+                    temp1 = 1;
+                }
 
                 sprintf(filename, "%d", temp1);
                 cat(filename, a, b, c);
                 printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, seconds_back, atoi(a), atoi(b), atoi(c));
                 cd_display2(filename, a, c, b);
 
-                for(int j = 0; j < 3; j++) {
+                for(int j = 0; j < 4; j++) {
                     digits_entered[j] = 0;
                 }
-                keycount = 0;
+                keycount = 3;
             }
             else if(key < 58 && key > 47){ //isdigit
+                printf("in isdigit\n");
+                digits_entered[keycount - 1] = digits_entered[keycount];
                 digits_entered[keycount] = keynum;
-                keycount++;
+                keycount--;
             }
         }
     }
+    printf("digits_entered: %d %d %d %d\n", digits_entered[0], digits_entered[1], digits_entered[2], digits_entered[3]);
 }
 
 void init_keypad_irq() {
@@ -300,12 +303,12 @@ void timer_isr(){
     hw_clear_bits(&timer1_hw->intr, 1u << 0);
     //printf("%d\n", uv); //TODO: There's an issue right now - for some reason it's starting at 8. But, it does increment as expected, every second
 
-    sprintf(weather_block, "%d\n%d\n%d\n%d\n", uv, humidity, temperature);
-    printf("==============================================================");
-    printf("filename: %s timestamp: %d\n", filename, timestamp);
+    sprintf(weather_block, "%d\n%d\n%d\n", uv, humidity, temperature);
+    //printf("==============================================================");
+    //printf("filename: %s timestamp: %d\n", filename, timestamp);
     sprintf(filename, "%d", timestamp);
-    printf("filename: %s timestamp: %d\n", filename, timestamp);
-    printf("==============================================================");
+    //printf("filename: %s timestamp: %d\n", filename, timestamp);
+    //printf("==============================================================");
 
     //Check if file with name of timestamp has already been created. If it has, remove it
     if (input(filename, weather_block)){
