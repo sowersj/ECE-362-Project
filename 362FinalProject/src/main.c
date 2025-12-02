@@ -26,7 +26,7 @@ char filename[512];
 int timestamp = 0; //set to 0 at the beginning of each reset
 int delete_later = 0;
 int keynum = 0;
-int keycount = 3; //max of 4 keypad digits inputted
+int keycount = 0; //max of 4 keypad digits inputted
 int digits_entered[4]; //recording of digits entered
 
 //temp data
@@ -232,7 +232,7 @@ void keypad_isr() {
             //logic: we will read from the file who's name is timestamp - key
             keynum = key - '0';
 
-            if(key == '#' || (key < 58 && key > 47 && keycount == 0)) { //display saved data
+            if(key == '#' || (key < 58 && key > 47 && keycount == 3)) { //display saved data
                 if(key != '#') {
                     digits_entered[0] = keynum;
                 }
@@ -251,13 +251,15 @@ void keypad_isr() {
                 for(int j = 0; j < 4; j++) {
                     digits_entered[j] = 0;
                 }
-                keycount = 3;
+                keycount = 0;
             }
             else if(key < 58 && key > 47){ //isdigit
-                printf("in isdigit\n");
-                digits_entered[keycount - 1] = digits_entered[keycount];
-                digits_entered[keycount] = keynum;
-                keycount--;
+                //printf("in isdigit\n");
+                digits_entered[0] = digits_entered[1];
+                digits_entered[1] = digits_entered[2];
+                digits_entered[2] = digits_entered[3];
+                digits_entered[3] = keynum;
+                keycount++;
             }
         }
     }
