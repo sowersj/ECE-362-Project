@@ -35,7 +35,16 @@ void cd_display1(const int time, const char uv_str, const int temp, const int hu
     if (uv < 0) uv = 0;
 
     char line[17];
-    snprintf(line, sizeof(line), "%2d U:%1d T:%2d H:%2d\0", time, uv, temp, hum);
+
+    if (time > 999) {
+        snprintf(line, sizeof(line), "%2d U:%1dT:%2dH:%2d\0", time, uv, temp, hum);
+    } 
+    else if (time > 99) {
+        snprintf(line, sizeof(line), "%2dU:%1d T:%2d H:%2d\0", time, uv, temp, hum);
+    }
+    else {
+        snprintf(line, sizeof(line), "%2d U:%1d T:%2d H:%2d\0", time, uv, temp, hum);
+    }
 
     send_spi_cmd(spi0, 0b10000000);
 
@@ -51,7 +60,16 @@ void cd_display2(const char *filename_str, const char *uv_str, const char *temp_
     int filename = atoi(filename_str);
 
     char line[17];
-    snprintf(line, sizeof(line), "%2d   %1d  %3d   %2d\0", filename, uv, temp, hum);
+
+    if (filename > 999) {
+        snprintf(line, sizeof(line), "%2d %1d  %3d   %2d\0", filename, uv, temp, hum);
+    } 
+    else if (filename > 99) {
+        snprintf(line, sizeof(line), "%2d  %1d  %3d   %2d\0", filename, uv, temp, hum);
+    }
+    else {
+        snprintf(line, sizeof(line), "%2d   %1d  %3d   %2d\0", filename, uv, temp, hum);
+    }
 
     send_spi_cmd(spi0, 0b11000000);
     for (int i = 0; i < 16; i++) {
