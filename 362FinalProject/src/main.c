@@ -248,6 +248,9 @@ void keypad_isr() {
                 printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, seconds_back, atoi(a), atoi(b), atoi(c));
                 cd_display2(filename, a, b, c);
 
+                for(int j = 0; j < 3; j++) {
+                    digits_entered[j] = 0;
+                }
                 keycount = 0;
             }
             else if(key < 58 && key > 47){ //isdigit
