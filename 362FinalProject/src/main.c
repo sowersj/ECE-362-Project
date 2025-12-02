@@ -246,7 +246,7 @@ void keypad_isr() {
                 sprintf(filename, "%d", temp1);
                 cat(filename, a, b, c);
                 printf("The file named %s, which was %d seconds ago, has a UV of: %d, a humidity of: %d, and a temperature of: %d.\n", filename, seconds_back, atoi(a), atoi(b), atoi(c));
-                cd_display2(filename, a, b, c);
+                cd_display2(filename, a, c, b);
 
                 for(int j = 0; j < 3; j++) {
                     digits_entered[j] = 0;
