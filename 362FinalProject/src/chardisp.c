@@ -29,8 +29,8 @@ void cd_init() {
     sleep_us(40);
 }
 
-void cd_display1(const int time, const char uv_str, const int temp, const int hum) {
-    int uv = uv_str - '0';
+void cd_display1(int time, int uv, int temp, int hum) {
+    //int uv = uv_str - '0';
     if (uv > 9) uv = 9;
     if (uv < 0) uv = 0;
 

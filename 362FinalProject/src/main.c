@@ -17,7 +17,7 @@ const char keymap[16] = "DCBA#9630852*741";
 char key = '\0';
 int col = 0;
 uint32_t adc_fifo_out = 0; //direct output of adc from uv sensor
-char uv = 0; //I feel it'll be easier since this is set to be one byte
+int uv = 0; //I feel it'll be easier since this is set to be one byte
 int temperature = 50;
 int humidity = 100; 
 char weather_block[512];
